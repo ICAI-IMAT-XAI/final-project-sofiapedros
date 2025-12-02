@@ -15,7 +15,9 @@ from src.data import get_dataloaders
 from src.data import DatasetBaseBreast
 
 
-device: torch.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+device: torch.device = (
+    torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+)
 os.makedirs("./results/explainability_tabular", exist_ok=True)
 
 
