@@ -8,7 +8,9 @@ import pandas as pd
 
 N_CLASSES: int = 3
 info_filename: str = "data/BrEaST-Lesions-USG-clinical-data-Dec-15-2023.xlsx"
-device: torch.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+device: torch.device = (
+    torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+)
 
 
 def set_seed(seed: int) -> None:

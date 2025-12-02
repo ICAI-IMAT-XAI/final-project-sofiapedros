@@ -78,7 +78,9 @@ def evaluate_model(
 
 
 def main():
-    model_name: str = "Tab_model_lr_0.0001_bs_8_hd_(128, 256)_dropout_0.2_encode_True_drop_True_cw_True_1.5"
+    model_name: str = (
+        "Tab_model_lr_0.0001_bs_8_hd_(128, 256)_dropout_0.2_encode_True_drop_True_cw_True_1.5"
+    )
     batch_size: int = 32
     seed: int = 42
     info_filename: str = r"data/BrEaST-Lesions-USG-clinical-data-Dec-15-2023.xlsx"
