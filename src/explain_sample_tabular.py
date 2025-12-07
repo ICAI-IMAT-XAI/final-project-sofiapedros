@@ -18,6 +18,7 @@ from src.explain_tabular import ModelWrapper, get_feature_names
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 os.makedirs("./results/explainability_s_tabular", exist_ok=True)
 
+
 def explain_single_sample(
     model_wrapper: ModelWrapper,
     X_train: torch.Tensor,
