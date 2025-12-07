@@ -28,3 +28,14 @@ Available in: https://www.cancerimagingarchive.net/collection/breast-lesions-usg
 
 # Explanations
 In notebooks/tabular_model.ipynb
+
+# Deploy web
+- Build images:
+```bash
+docker build -t spedros/tumor-api-explain:latest -f Dockerfile .
+docker build -t spedros/mlops-tumor-web-explain:latest -f Dockerfile.web .
+```
+- Deploy:
+```bash
+docker-compose up -d
+```

@@ -1,0 +1,18 @@
+services:
+  tumor-api:
+    image: spedros/tumor-api-explain
+    container_name: tumor-api
+    ports:
+    - "5000:5000"
+    restart: always
+  mlops-tumor-web:
+    image: spedros/mlops-tumor-web-explain
+    container_name: mlops-tumor-web
+    ports:
+    - "8501:8501"
+    environment:
+    - API_URL=http://tumor-api:5000/predict
+    depends_on:
+    - tumor-api
+    restart: always
+  
