@@ -65,7 +65,7 @@ def main():
     use_encoding: bool = True
     drop_columns: bool = True
     custom_weights: bool = True
-    malignant_penalty: float = 5.0
+    malignant_penalty: float = 1.5
 
     info_filename: str = r"data/BrEaST-Lesions-USG-clinical-data-Dec-15-2023.xlsx"
     images_folder: str = r"data/BrEaST-Lesions_USG-images_and_masks/"
