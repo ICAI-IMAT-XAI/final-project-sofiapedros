@@ -29,6 +29,7 @@ Available in: https://www.cancerimagingarchive.net/collection/breast-lesions-usg
 
 # Explanations
 In notebooks/tabular_model.ipynb
+
 Report available in Report.pdf
 
 # Deploy web
