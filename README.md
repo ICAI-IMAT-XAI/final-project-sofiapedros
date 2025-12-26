@@ -29,8 +29,11 @@ Available in: https://www.cancerimagingarchive.net/collection/breast-lesions-usg
 
 # Explanations
 In notebooks/tabular_model.ipynb
+Report available in Report.pdf
 
 # Deploy web
+This web allows the user to classify samples based on tabular data.
+
 - Build images:
 ```bash
 docker build -t spedros/tumor-api-explain:latest -f Dockerfile .
