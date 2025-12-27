@@ -44,3 +44,4 @@ docker build -t spedros/mlops-tumor-web-explain:latest -f Dockerfile.web .
 ```bash
 docker-compose up -d
 ```
+In a web browser open: http://localhost:8501

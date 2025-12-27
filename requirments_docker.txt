@@ -9,3 +9,5 @@ streamlit
 pyarrow==14.0.1
 mlflow==2.13.0
 prometheus-client
+shap
+openpyxl

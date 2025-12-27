@@ -11,7 +11,7 @@ services:
     ports:
     - "8501:8501"
     environment:
-    - API_URL=http://tumor-api:5000/predict
+    - API_URL=http://tumor-api:5000
     depends_on:
     - tumor-api
     restart: always
