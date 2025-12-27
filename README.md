@@ -35,13 +35,15 @@ Report available in Report.pdf
 # Deploy web
 This web allows the user to classify samples based on tabular data.
 
-- Build images:
-```bash
-docker build -t spedros/tumor-api-explain:latest -f Dockerfile .
-docker build -t spedros/mlops-tumor-web-explain:latest -f Dockerfile.web .
-```
 - Deploy:
 ```bash
 docker-compose up -d
 ```
 In a web browser open: http://localhost:8501
+
+Note: The Docker images are already uploaded to Docker Hub, so building them locally is usually not necessary.
+- If you want to modify or rebuild the images, you can run:
+```bash
+docker build -t spedros/tumor-api-explain:latest -f Dockerfile .
+docker build -t spedros/mlops-tumor-web-explain:latest -f Dockerfile.web .
+```
