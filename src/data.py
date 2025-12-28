@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import os
 from sklearn.preprocessing import LabelEncoder
+import random
 
 
 class DatasetBaseBreast:
@@ -318,6 +319,84 @@ class DatasetTabular(Dataset):
         return x, y
 
 
+class ClassAwareAugmentedDataset(Dataset):
+    """
+    Dataset con oversampling de clases minoritarias mediante augmentación.
+    """
+
+    def __init__(
+        self, info_filename, images_and_masks_foldername, target_size=(224, 224)
+    ):
+        breast_dataset = pd.read_excel(
+            info_filename, sheet_name="BrEaST-Lesions-USG clinical dat"
+        )
+        self.images = [
+            os.path.join(images_and_masks_foldername, img)
+            for img in breast_dataset["Image_filename"]
+        ]
+        self.labels = (
+            breast_dataset["Classification"]
+            .map({"benign": 0, "malignant": 1, "normal": 2})
+            .astype(int)
+            .tolist()
+        )
+
+        self.target_size = target_size
+
+        # Base transform
+        self.base_transform = transforms.Compose(
+            [
+                transforms.Resize(target_size),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        )
+
+        # Transform de augmentación
+        self.aug_transform = transforms.Compose(
+            [
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                transforms.RandomRotation(15),
+                transforms.RandomResizedCrop(target_size, scale=(0.8, 1.0)),
+                transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+            ]
+        )
+
+        # Calcular cuántas veces oversamplear cada clase
+        class_counts = np.bincount(self.labels, minlength=3)
+        max_count = class_counts.max()
+
+        self.oversampled_images = []
+        self.oversampled_labels = []
+
+        for c in range(3):
+            idxs = [i for i, l in enumerate(self.labels) if l == c]
+            n_to_add = max_count - len(idxs)
+            self.oversampled_images.extend([self.images[i] for i in idxs])
+            self.oversampled_labels.extend([c for _ in idxs])
+
+            # Oversampling con augmentación
+            for _ in range(n_to_add):
+                i = random.choice(idxs)
+                self.oversampled_images.append(self.images[i])
+                self.oversampled_labels.append(c)
+
+    def __len__(self):
+        return len(self.oversampled_images)
+
+    def __getitem__(self, idx):
+        image = Image.open(self.oversampled_images[idx]).convert("RGB")
+        label = self.oversampled_labels[idx]
+
+        # Si la imagen es duplicada por oversampling, aplicar augmentación
+        if idx >= len(self.labels):
+            image = self.aug_transform(image)
+
+        image = self.base_transform(image)
+        return image, label
+
+
 def get_dataloaders(
     info_file: str,
     images_folder: str,
@@ -327,6 +406,7 @@ def get_dataloaders(
     type: str = "tabular",
     use_label_encoding: bool = False,
     drop_specific_columns: bool = False,
+    augment: bool = False,
 ) -> tuple:
     """
     Get the dataloaders for the desired model
@@ -355,7 +435,12 @@ def get_dataloaders(
     generator = torch.Generator().manual_seed(seed)
 
     if type == "image":
-        dataset = DatasetImagenClasificacion(base_dataset)
+        if augment:
+            dataset = ClassAwareAugmentedDataset(
+                info_filename=info_file, images_and_masks_foldername=images_folder
+            )
+        else:
+            dataset = DatasetImagenClasificacion(base_dataset)
     elif type == "tabular":
         dataset = DatasetTabular(base_dataset)
     elif type == "segmentation":
@@ -366,7 +451,7 @@ def get_dataloaders(
         )
 
     # Split between train, val and test
-    n_total = len(base_dataset)
+    n_total = len(dataset)
     n_train = int(n_total * split_ratio)
     n_val = int((n_total - n_train) / 2)
     n_test = n_total - n_train - n_val

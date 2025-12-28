@@ -136,3 +136,42 @@ class BCEDiceLoss(nn.Module):
 
         dice = 1 - dice_coeff(pred, target)
         return bce + dice
+
+
+def get_class_weights(factor_malignant: float = 2.0) -> torch.Tensor:
+    """
+    Computes custom class weights.
+    Increases the weight of the 'malignant' class to further penalize false negatives.
+
+    Args:
+    - factor_malignant (float): multiplier factor for the malignant class (>1 to penalize more)
+
+    Returns:
+        torch.Tensor containing the weights for each class
+    """
+
+    df: pd.DataFrame = pd.read_excel(
+        info_filename, sheet_name="BrEaST-Lesions-USG clinical dat"
+    )
+    df = df.dropna(subset=["Classification"])
+
+    class_map: dict = {"benign": 0, "malignant": 1, "normal": 2}
+    df["label"] = df["Classification"].map(class_map)
+
+    labels: list = df["label"].values
+
+    # Count examples per class
+    class_counts: np.array = np.array([sum(labels == i) for i in range(N_CLASSES)])
+
+    # Weight inverse to the class frequency
+    class_weights: np.array = 1.0 / class_counts
+
+    # Augment penalization for malignant class
+    class_weights[1] *= factor_malignant
+
+    class_weights = class_weights / class_weights.sum()
+
+    # Convert to tensor and pass to device
+    class_weights = torch.tensor(class_weights, dtype=torch.float).to(device)
+
+    return class_weights

@@ -12,83 +12,87 @@ class BreastImageClassifier(nn.Module):
 
     def __init__(
         self,
-        backbone: str = "efficientnet_b0",
+        backbone: str = "resnet18",
         pretrained: bool = True,
-        num_classes: int = 3,
+        num_classes: int = 1,
         dropout: float = 0.3,
         unfreeze_last_layer: bool = True,
         use_extra_conv: bool = False,
     ):
         """
         Args:
-        - backbone (str): backbone. Options: resnet18, efficientnet_b0
+        - backbone (str): backbone. Options: resnet18, resnet50
         - pretrained (bool): use a pretrained backbone or not
         - num_classes (int): number of classes
         - dropout (float): dropout rate
-        - unfreeze_last_layer (bool): unfreeze last layer of the backbone
-        - use_extra_conv (bool): use an extra convolution after the backbone
         """
         super().__init__()
 
-        if backbone == "efficientnet_b0":
+        # 1. Load backbone
+        if backbone == "resnet18":
             weights = (
-                models.EfficientNet_B0_Weights.IMAGENET1K_V1 if pretrained else None
+                models.resnet.ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
             )
-            net = models.efficientnet_b0(weights=weights)
-            last_c = net.classifier[1].in_features
-            self.backbone = net.features  # feature extractor
-
-        elif backbone == "resnet18":
-            weights = models.ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
             net = models.resnet18(weights=weights)
             last_c = 512
-            self.backbone = nn.Sequential(
-                net.conv1,
-                net.bn1,
-                net.relu,
-                net.maxpool,
-                net.layer1,
-                net.layer2,
-                net.layer3,
-                net.layer4,
-            )
-
         else:
-            raise ValueError("Backbone not supported")
+            weights = (
+                models.resnet.ResNet50_Weights.IMAGENET1K_V2 if pretrained else None
+            )
+            net = models.resnet50(weights=weights)
+            last_c = 2048
 
+        # 2. Remove ONLY the FC layer — keep everything else intact
+        self.backbone = nn.Sequential(
+            net.conv1,
+            net.bn1,
+            net.relu,
+            net.maxpool,
+            net.layer1,
+            net.layer2,
+            net.layer3,
+            net.layer4,
+        )
+
+        # Freeze backbone
         for p in self.backbone.parameters():
             p.requires_grad = False
+        if hasattr(self.backbone, "layer4") and unfreeze_last_layer:
+            for name, child in self.backbone.named_children():
+                if name == "layer4":
+                    for param in child.parameters():
+                        param.requires_grad = True
+                    break
 
-        if unfreeze_last_layer:
-            if backbone == "efficientnet_b0":
-                for p in self.backbone[-1].parameters():
-                    p.requires_grad = True
-            else:
-                for p in self.backbone[-1].parameters():
-                    p.requires_grad = True
-
+        # 3. Optional extra conv block
         self.use_extra_conv = use_extra_conv
         if use_extra_conv:
             self.extra_conv = nn.Sequential(
                 nn.Conv2d(last_c, last_c // 2, kernel_size=3, padding=1),
-                nn.ReLU(),
+                nn.ReLU(inplace=True),
                 nn.Conv2d(last_c // 2, last_c // 4, kernel_size=3, padding=1),
-                nn.ReLU(),
+                nn.ReLU(inplace=True),
             )
             final_c = last_c // 4
         else:
             self.extra_conv = nn.Identity()
             final_c = last_c
 
-        self.pool = nn.AdaptiveAvgPool2d(1)
+        # 4. Classifier
+        self.pool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Sequential(nn.Dropout(dropout), nn.Linear(final_c, num_classes))
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x):
+        # Backbone intacto
         x = self.backbone(x)
+
+        # Extra conv opcional
         x = self.extra_conv(x)
+
         x = self.pool(x)
         x = torch.flatten(x, 1)
         x = self.fc(x)
+
         return x
 
 
