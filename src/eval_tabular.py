@@ -48,14 +48,16 @@ def evaluate_model(
 
             all_targets.append(labels)
 
+    # Concatenate all batches
     all_preds = torch.cat(all_preds)
     all_targets = torch.cat(all_targets)
     all_softmax = torch.cat(all_softmax)
 
+    # Compute accuracy
     acc = accuracy(all_preds, all_targets)
-
     print(f"Accuracy: {acc*100:.2f}%")
 
+    # Confusion matrix
     preds_labels = torch.argmax(all_preds, dim=1).cpu().numpy()
     true_labels = all_targets.cpu().numpy()
     conf_matrix = confusion_matrix(true_labels, preds_labels)
