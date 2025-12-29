@@ -2,7 +2,7 @@
 
 In this work, I developed a breast-lesion classifier based on features extracted from ultrasound images. The goal of this model is to assist in the early identification of potentially malignant findings without always requiring the immediate intervention of a radiologist, helping reduce workload and optimize medical resources. Additionally, the model’s explanations provide transparency that can support doctors in confirming whether the automated decisions are reasonable or not. This system is motivated by the need for more accessible diagnostic support tools and benefits stakeholders such as radiologists, medical institutions, and ultimately patients seeking timely and reliable assessments.
 
-# Use
+# Use (tabular model)
 - Install requirements
 ```bash
 pip install -r requirements.txt
