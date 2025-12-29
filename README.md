@@ -52,3 +52,15 @@ Note: The Docker images are already uploaded to Docker Hub, so building them loc
 docker build -t spedros/tumor-api-explain:latest -f Dockerfile .
 docker build -t spedros/mlops-tumor-web-explain:latest -f Dockerfile.web .
 ```
+
+# Image model
+- Train: 
+```bash
+python -m src.train_image
+```
+- Eval:
+```bash
+python -m src.eval_image
+```
+- Explanations:
+In notebooks/image_model.ipynb
