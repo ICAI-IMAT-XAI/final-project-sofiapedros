@@ -78,7 +78,7 @@ def evaluate_model(
 
 def main():
     model_name: str = (
-        "Image_model_lr_0.0005_bs_32_back_resnet18_drop_0.5_unfreeze_False_extrconv_True_augment_False"
+        "Image_model_lr_0.0005_bs_32_back_resnet18_drop_0.5_unfreeze_False_extrconv_True_augment_True"
     )
     batch_size: int = 32
     seed: int = 42
